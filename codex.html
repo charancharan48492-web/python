@@ -1,0 +1,405 @@
+import 'package:flutter/material.dart';
+
+void main() {
+  runApp(const CodeXApp());
+}
+
+class CodeXApp extends StatelessWidget {
+  const CodeXApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'codeX',
+      theme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.blue,
+        ),
+      ),
+      home: const HomeScreen(),
+    );
+  }
+}
+
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  int selectedIndex = 0;
+
+  final List<Map<String, String>> chats = [
+    {
+      "name": "Alex",
+      "message": "Hey! How are you?",
+      "time": "10:30 AM",
+    },
+    {
+      "name": "Sam",
+      "message": "Let's build something awesome!",
+      "time": "9:45 AM",
+    },
+    {
+      "name": "John",
+      "message": "See you tomorrow 👋",
+      "time": "Yesterday",
+    },
+    {
+      "name": "Emma",
+      "message": "Did you finish the project?",
+      "time": "Yesterday",
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "codeX",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 26,
+          ),
+        ),
+        centerTitle: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.search),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.more_vert),
+            onPressed: () {},
+          ),
+        ],
+      ),
+
+      body: selectedIndex == 0
+          ? ChatList(chats: chats)
+          : selectedIndex == 1
+              ? const Center(
+                  child: Text(
+                    "No calls yet",
+                    style: TextStyle(fontSize: 18),
+                  ),
+                )
+              : const ProfileScreen(),
+
+      floatingActionButton: selectedIndex == 0
+          ? FloatingActionButton(
+              onPressed: () {},
+              child: const Icon(Icons.chat),
+            )
+          : null,
+
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: selectedIndex,
+        onDestinationSelected: (index) {
+          setState(() {
+            selectedIndex = index;
+          });
+        },
+        destinations: const [
+          NavigationDestination(
+            icon: Icon(Icons.chat_bubble_outline),
+            selectedIcon: Icon(Icons.chat),
+            label: "Chats",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.call_outlined),
+            selectedIcon: Icon(Icons.call),
+            label: "Calls",
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.person_outline),
+            selectedIcon: Icon(Icons.person),
+            label: "Profile",
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// CHAT LIST
+
+class ChatList extends StatelessWidget {
+  final List<Map<String, String>> chats;
+
+  const ChatList({
+    super.key,
+    required this.chats,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      itemCount: chats.length,
+      itemBuilder: (context, index) {
+        final chat = chats[index];
+
+        return ListTile(
+          leading: CircleAvatar(
+            radius: 28,
+            child: Text(
+              chat["name"]![0],
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+
+          title: Text(
+            chat["name"]!,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 17,
+            ),
+          ),
+
+          subtitle: Text(
+            chat["message"]!,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
+          trailing: Text(
+            chat["time"]!,
+            style: const TextStyle(
+              fontSize: 12,
+            ),
+          ),
+
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(
+                  userName: chat["name"]!,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+
+// CHAT SCREEN
+
+class ChatScreen extends StatefulWidget {
+  final String userName;
+
+  const ChatScreen({
+    super.key,
+    required this.userName,
+  });
+
+  @override
+  State<ChatScreen> createState() => _ChatScreenState();
+}
+
+class _ChatScreenState extends State<ChatScreen> {
+  final TextEditingController messageController =
+      TextEditingController();
+
+  final List<String> messages = [
+    "Hello 👋",
+    "Welcome to codeX!",
+  ];
+
+  void sendMessage() {
+    final text = messageController.text.trim();
+
+    if (text.isEmpty) return;
+
+    setState(() {
+      messages.add(text);
+    });
+
+    messageController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        titleSpacing: 0,
+        title: Row(
+          children: [
+            CircleAvatar(
+              child: Text(widget.userName[0]),
+            ),
+            const SizedBox(width: 10),
+            Text(widget.userName),
+          ],
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.call),
+            onPressed: () {},
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam),
+            onPressed: () {},
+          ),
+        ],
+      ),
+
+      body: Column(
+        children: [
+
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: messages.length,
+              itemBuilder: (context, index) {
+
+                final isMe = index % 2 == 1;
+
+                return Align(
+                  alignment: isMe
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+
+                  child: Container(
+                    margin: const EdgeInsets.only(
+                      bottom: 10,
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+
+                    decoration: BoxDecoration(
+                      color: isMe
+                          ? Colors.blue
+                          : Colors.grey.shade300,
+
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+
+                    child: Text(
+                      messages[index],
+                      style: TextStyle(
+                        color: isMe
+                            ? Colors.white
+                            : Colors.black,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+
+
+          // MESSAGE INPUT
+
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+
+              child: Row(
+                children: [
+
+                  IconButton(
+                    icon: const Icon(Icons.add),
+                    onPressed: () {},
+                  ),
+
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+
+                      decoration: InputDecoration(
+                        hintText: "Message...",
+
+                        filled: true,
+
+                        border: OutlineInputBorder(
+                          borderRadius:
+                              BorderRadius.circular(25),
+
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+
+                      onSubmitted: (_) {
+                        sendMessage();
+                      },
+                    ),
+                  ),
+
+                  const SizedBox(width: 8),
+
+                  CircleAvatar(
+                    radius: 25,
+
+                    child: IconButton(
+                      icon: const Icon(Icons.send),
+
+                      onPressed: sendMessage,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+// PROFILE SCREEN
+
+class ProfileScreen extends StatelessWidget {
+  const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+
+          CircleAvatar(
+            radius: 50,
+            child: Icon(
+              Icons.person,
+              size: 60,
+            ),
+          ),
+
+          SizedBox(height: 20),
+
+          Text(
+            "Your Profile",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          SizedBox(height: 8),
+
+          Text(
+            "Welcome to codeX 🚀",
+          ),
+        ],
+      ),
+    );
+  }
+}
